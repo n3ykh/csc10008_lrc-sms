@@ -87,33 +87,33 @@ if not os.path.exists(SANDBOX_DIR):
 # 2. QUẢN LÝ TIẾN TRÌNH HỆ THỐNG (PROCESS MANAGER)
 # ==========================================================
 class ProcessManager:
+    """Xử lý nghiệp vụ đọc dữ liệu hệ thống Windows và can thiệp Tiến trình"""
     @staticmethod
     def get_all_processes():
         process_list = []
+        # Lấy tổng số luồng (nhân logic) của CPU máy trạm
+        cpu_cores = psutil.cpu_count(logical=True) or 1
+        
         for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_info']):
             try:
                 pinfo = proc.info
                 ram_mb = (pinfo['memory_info'].rss / (1024 * 1024)) if pinfo['memory_info'] else 0
+                
+                # CHUẨN HÓA CPU: Chia cho số lượng nhân để quy về thang 0-100%
+                raw_cpu = pinfo['cpu_percent'] or 0
+                real_cpu = round(raw_cpu / cpu_cores, 1)
+
                 process_list.append({
                     "pid": pinfo['pid'],
                     "name": pinfo['name'] or "Unknown",
-                    "cpu": pinfo['cpu_percent'] or 0,
+                    "cpu": real_cpu,
                     "ram": round(ram_mb, 2)
                 })
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
             except Exception as e:
-                print(f"[Agent] Lỗi khi quét tiến trình: {e}")
                 continue
         return process_list
-
-    @staticmethod
-    def kill_process(pid):
-        try:
-            psutil.Process(pid).kill()
-            return True
-        except:
-            return False
 
 # ==========================================================
 # 3. QUẢN LÝ TỆP TIN VÀ KHÓA ĐƯỜNG DẪN (FILE MANAGER)
