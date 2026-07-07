@@ -391,6 +391,17 @@
                     renderProcesses(res.data);
                 }
 
+                if (res.type === "download_response") {
+                    // Tạo một thẻ liên kết ẩn để kích hoạt tính năng tải xuống của trình duyệt
+                    const link = document.createElement("a");
+                    link.href = "data:application/octet-stream;base64," + res.data;
+                    link.download = res.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    appendLog(`[THÀNH CÔNG] Đã tải xuống tệp tin: ${res.filename}`, "info");
+                }
+
                 if (res.type === "video_stream") {
                     const img = document.getElementById('liveStream');
                     const placeholder = document.getElementById('streamPlaceholder');
