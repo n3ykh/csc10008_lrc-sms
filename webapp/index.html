@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRC-SMS NextGen Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #64748b;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 font-sans flex h-screen overflow-hidden text-slate-800">
+
+    <aside id="sidebar"
+        class="bg-slate-900 text-white w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out overflow-hidden shadow-2xl z-20">
+        <div class="p-5 flex items-center justify-between border-b border-slate-800 whitespace-nowrap">
+            <span class="text-xl font-bold tracking-wider text-indigo-400">LRC-SMS</span>
+            <span
+                class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">v2.5</span>
+        </div>
+
+        <nav class="flex-grow p-3 space-y-1.5 overflow-y-auto whitespace-nowrap">
+            <a href="#" onclick="switchTab('processTab'); return false;" id="btn-processTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 transition">
+                <span class="sidebar-text">Quản lý Tiến trình</span>
+            </a>
+            <a href="#" onclick="switchTab('streamTab'); return false;" id="btn-streamTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <span class="sidebar-text">Giám sát Màn hình & Cam</span>
+            </a>
+            <a href="#" onclick="switchTab('keylogTab'); return false;" id="btn-keylogTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <span class="sidebar-text">Keylogger (Ghi phím)</span>
+            </a>
+            <a href="#" onclick="switchTab('fileTab'); return false;" id="btn-fileTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <span class="sidebar-text">Quản lý File Sandbox</span>
+            </a>
+            <a href="#" onclick="switchTab('powerTab'); return false;" id="btn-powerTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <span class="sidebar-text">Quản trị Nguồn</span>
+            </a>
+            <div class="pt-4 mt-4 border-t border-slate-800"></div>
+            <a href="#" onclick="switchTab('logTab'); return false;" id="btn-logTab"
+                class="tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-amber-400 hover:bg-slate-800 transition">
+                <span class="sidebar-text">Nhật ký Hệ thống (Logs)</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-950/50 whitespace-nowrap font-mono">
+            <div class="text-xs text-slate-400">Do An Mang May Tinh</div>
+            <div class="text-[11px] text-slate-500 truncate mt-0.5">Realtime LAN Control</div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
+        <header
+            class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 flex-shrink-0 z-10 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()"
+                    class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition font-mono font-bold"
+                    title="Ẩn/Hiện Menu">
+                    <span id="toggleIcon">&lt;&lt;</span>
+                </button>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <span>Thiết bị mục tiêu:</span>
+                        <span id="card-target-device"
+                            class="text-indigo-600 font-mono bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">Chờ
+                            kết nối...</span>
+                    </h2>
+                </div>
+            </div>
+
+            <div
+                class="hidden md:flex items-center gap-2 bg-slate-900 text-slate-200 px-4 py-1.5 rounded-full text-xs font-mono shadow-inner max-w-md w-full">
+                <span id="latestLogTicker" class="truncate flex-1">Hệ thống sẵn sàng...</span>
+            </div>
+
+            <div class="flex items-center gap-3 font-mono">
+                <span id="card-status"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span> Offline
+                </span>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 bg-slate-50">
+
+            <div id="processTab" class="tab-content space-y-4">
+                <div
+                    class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Danh sách Tiến trình đang chạy</h3>
+                        <p class="text-xs text-slate-500">Quản lý ứng dụng và mức tiêu thụ tài nguyên CPU/RAM</p>
+                    </div>
+                    <button onclick="refreshProcesses()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-md flex items-center gap-2 font-mono">
+                        Làm mới danh sách
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                                <th class="py-3.5 px-6">PID</th>
+                                <th class="py-3.5 px-6">Tên Ứng Dụng (Process)</th>
+                                <th class="py-3.5 px-6 text-center">CPU (%)</th>
+                                <th class="py-3.5 px-6 text-center">RAM (MB)</th>
+                                <th class="py-3.5 px-6 text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="processTableBody" class="divide-y divide-slate-100 text-sm font-medium font-mono">
+                            <tr>
+                                <td colspan="5" class="text-center py-8 text-slate-400">Đang quét dữ liệu từ máy trạm...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="streamTab" class="tab-content hidden space-y-4">
+                <div
+                    class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm font-mono text-sm font-bold">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="startScreenStream()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl transition shadow-md">
+                            Xem Màn Hình
+                        </button>
+                        <button onclick="stopScreenStream()"
+                            class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 px-4 py-2 rounded-xl transition">
+                            Dừng Màn Hình
+                        </button>
+                        <span class="w-px h-6 bg-slate-200 mx-1"></span>
+                        <button onclick="startCamStream()"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition shadow-md">
+                            Bật Webcam
+                        </button>
+                        <button onclick="stopCamStream()"
+                            class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 px-4 py-2 rounded-xl transition">
+                            Dừng Cam
+                        </button>
+                    </div>
+                    <button onclick="toggleFullscreenStream()"
+                        class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl transition shadow-md">
+                        Phóng To Toàn Màn Hình
+                    </button>
+                </div>
+
+                <div
+                    class="bg-slate-950 p-3 rounded-2xl border border-slate-800 shadow-2xl flex flex-col items-center justify-center relative min-h-[500px]">
+                    <img id="liveStream" src="" alt="Live Stream Viewport"
+                        class="w-full max-h-[80vh] object-contain rounded-lg bg-black/50 border border-slate-800/80 mx-auto hidden">
+                    <div id="streamPlaceholder" class="text-center py-20 text-slate-500 font-mono">
+                        <div class="text-lg font-bold text-slate-400 mb-1">Không có tín hiệu</div>
+                        <div class="text-sm">Chưa có luồng tín hiệu video nào được phát.</div>
+                        <div class="text-xs text-slate-600 mt-1">Bấm nút Xem Màn Hình hoặc Bật Webcam phía trên để kích
+                            hoạt luồng truyền.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="keylogTab" class="tab-content hidden space-y-4">
+                <div
+                    class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Giám sát thao tác bàn phím (Keylogger)</h3>
+                        <p class="text-xs text-slate-500 font-mono">Bắt buộc hiển thị Popup xin quyền trên máy trạm</p>
+                    </div>
+                    <div class="flex gap-2 font-mono text-sm font-bold">
+                        <button onclick="startKeylogger()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl transition shadow-md">
+                            Bắt đầu Ghi phím
+                        </button>
+                        <button onclick="stopKeylogger()"
+                            class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 px-4 py-2 rounded-xl transition">
+                            Dừng Ghi phím
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl font-mono">
+                    <div class="text-xs text-slate-400 mb-3 flex justify-between border-b border-slate-800 pb-2">
+                        <span>Dữ liệu bàn phím thời gian thực (Mỗi phím bấm / cửa sổ là 1 dòng):</span>
+                        <button onclick="document.getElementById('keylogBox').innerHTML=''"
+                            class="hover:text-white underline">Xóa trắng màn hình</button>
+                    </div>
+                    <div id="keylogBox"
+                        class="text-emerald-400 text-sm bg-black/80 p-4 rounded-xl min-h-[400px] max-h-[600px] overflow-y-auto space-y-1 border border-slate-800">
+                        <div class="text-slate-600">Đang chờ dữ liệu phím bấm từ Agent...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fileTab" class="tab-content hidden space-y-4 font-mono">
+                <div
+                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 font-sans">Đẩy File vào Sandbox máy trạm</h3>
+                        <p class="text-xs text-slate-500 font-sans">Các tệp được cô lập an toàn trong thư mục
+                            sandbox_folder</p>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm font-bold">
+                        <input type="file" id="fileUploader"
+                            class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer font-mono font-normal" />
+                        <button onclick="uploadFile()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl transition shadow-md">
+                            Tải Lên Sandbox
+                        </button>
+                        <button onclick="refreshFileList()"
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl transition">
+                            Quét lại thư mục
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr
+                                class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                                <th class="py-3.5 px-6">Tên Tệp Tin (Filename)</th>
+                                <th class="py-3.5 px-6 text-center">Kích thước (Size)</th>
+                                <th class="py-3.5 px-6 text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fileTableBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="3" class="text-center py-8 text-slate-400">Bấm Quét lại thư mục để tải danh
+                                    sách tệp trong Sandbox...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="powerTab" class="tab-content hidden space-y-6 font-mono">
+                <div
+                    class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-800 font-sans">
+                    <div class="text-sm">
+                        <strong class="font-bold">Lưu ý an toàn:</strong> Các thao tác Tắt máy hoặc Khởi động lại sẽ
+                        ngắt kết nối WebSocket hiện tại của Agent. Hãy chắc chắn đã lưu nhật ký cần thiết.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 hover:border-indigo-200 transition">
+                        <h4 class="font-bold text-slate-800 text-lg font-sans">Chế độ Ngủ (Sleep)</h4>
+                        <p class="text-xs text-slate-500 font-sans">Đưa máy trạm vào chế độ tiết kiệm điện năng tạm
+                            thời.</p>
+                        <button onclick="sendPowerCommand('SLEEP')"
+                            class="w-full bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 py-2.5 rounded-xl font-bold text-sm transition">Thực
+                            thi chế độ Ngủ</button>
+                    </div>
+
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 hover:border-amber-200 transition">
+                        <h4 class="font-bold text-slate-800 text-lg font-sans">Khởi động lại (Restart)</h4>
+                        <p class="text-xs text-slate-500 font-sans">Khởi động lại hệ điều hành Windows của máy bị điều
+                            khiển.</p>
+                        <button onclick="sendPowerCommand('RESTART')"
+                            class="w-full bg-amber-50 hover:bg-amber-600 text-amber-600 hover:text-white border border-amber-200 hover:border-amber-600 py-2.5 rounded-xl font-bold text-sm transition">Thực
+                            thi Khởi động lại</button>
+                    </div>
+
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 hover:border-rose-200 transition">
+                        <h4 class="font-bold text-slate-800 text-lg font-sans">Tắt nguồn (Shutdown)</h4>
+                        <p class="text-xs text-slate-500 font-sans">Tắt nguồn hoàn toàn máy trạm ngay lập tức (Force
+                            Shutdown).</p>
+                        <button onclick="sendPowerCommand('SHUTDOWN')"
+                            class="w-full bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 py-2.5 rounded-xl font-bold text-sm transition">Thực
+                            thi Tắt máy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="logTab" class="tab-content hidden space-y-4 font-mono">
+                <div
+                    class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 font-sans">Nhật ký Hoạt động Thời gian thực</h3>
+                        <p class="text-xs text-slate-500 font-sans">Ghi nhận toàn bộ lệnh điều khiển, trạng thái kết nối
+                            và phản hồi</p>
+                    </div>
+                    <button onclick="document.getElementById('logTerminal').innerHTML=''"
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition">
+                        Xóa trắng nhật ký
+                    </button>
+                </div>
+
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 p-6 shadow-2xl">
+                    <div
+                        class="flex items-center justify-between mb-3 pb-3 border-b border-slate-800 text-xs text-slate-400">
+                        <span>root@lrc-sms-gateway:/var/log/system.log</span>
+                        <span class="text-emerald-400">Đang giám sát thời gian thực</span>
+                    </div>
+                    <div id="logTerminal"
+                        class="text-xs space-y-1.5 min-h-[500px] max-h-[70vh] overflow-y-auto pr-2 leading-relaxed">
+                        <div class="text-slate-500">Đang khởi tạo giao diện NextGen Dashboard...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        let ws;
+        let targetAgent = "";
+
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
+
+            ws.onopen = () => {
+                appendLog("Kết nối WebSocket tới Server thành công", "success");
+            };
+
+            ws.onmessage = (event) => {
+                const res = JSON.parse(event.data);
+
+                if (res.type === "system_status") {
+                    appendLog(res.message, "info");
+                    if (res.connected_agents && res.connected_agents.length > 0) {
+                        targetAgent = res.connected_agents[0];
+                        updateStatusOnline();
+                        appendLog(`Đã nhận diện và khóa mục tiêu vào Agent: ${targetAgent}`, "success");
+                        sendCommand('GET_PROCESSES');
+                        sendCommand('LIST_FILES');
+                    } else {
+                        appendLog("Chưa có máy trạm Agent nào kết nối tới Gateway Server", "warn");
+                    }
+                }
+
+                if (res.type === "agent_connected") {
+                    targetAgent = res.agent_id;
+                    updateStatusOnline();
+                    appendLog(`Máy trạm ${targetAgent} vừa kết nối vào hệ thống`, "success");
+                    sendCommand('GET_PROCESSES');
+                    sendCommand('LIST_FILES');
+                }
+
+                if (res.type === "agent_disconnected") {
+                    document.getElementById('card-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span> Offline`;
+                    document.getElementById('card-status').className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200 font-mono";
+                    appendLog(`Máy trạm ${res.agent_id} đã ngắt kết nối khỏi hệ thống`, "error");
+                }
+
+                if (res.type === "process_list") {
+                    renderProcesses(res.data);
+                }
+
+                if (res.type === "video_stream") {
+                    const img = document.getElementById('liveStream');
+                    const placeholder = document.getElementById('streamPlaceholder');
+                    img.src = "data:image/jpeg;base64," + res.data;
+                    img.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+
+                if (res.type === "stream_status" || res.type === "log_message") {
+                    appendLog(res.msg, "info");
+                }
+
+                if (res.type === "keylogger_data") {
+                    const box = document.getElementById('keylogBox');
+                    if (box.innerText.includes("Đang chờ dữ liệu")) box.innerHTML = "";
+                    res.data.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = "border-b border-slate-800/60 py-1 hover:bg-slate-800/40 text-emerald-400 font-mono";
+                        row.innerText = item;
+                        box.appendChild(row);
+                    });
+                    box.scrollTop = box.scrollHeight;
+                }
+
+                if (res.type === "file_list") {
+                    renderFiles(res.data);
+                }
+            };
+
+            ws.onclose = () => {
+                appendLog("Mất kết nối Gateway Server. Đang thử lại sau 3 giây...", "error");
+                setTimeout(initWebSocket, 3000);
+            };
+        }
+
+        function updateStatusOnline() {
+            document.getElementById('card-target-device').innerText = targetAgent;
+            document.getElementById('card-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online`;
+            document.getElementById('card-status').className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 font-mono";
+        }
+
+        function sendCommand(action, payload = {}) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert("Mất kết nối WebSocket tới Server!");
+                return;
+            }
+            const msg = { target: targetAgent || "BROADCAST", action: action, ...payload };
+            ws.send(JSON.stringify(msg));
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggleIcon');
+            if (sidebar.classList.contains('w-64')) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-0');
+                icon.innerText = ">>";
+            } else {
+                sidebar.classList.remove('w-0');
+                sidebar.classList.add('w-64');
+                icon.innerText = "<<";
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition";
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 transition";
+            }
+        }
+
+        function appendLog(msg, type = "normal") {
+            const terminal = document.getElementById('logTerminal');
+            const ticker = document.getElementById('latestLogTicker');
+            const now = new Date().toLocaleTimeString('vi-VN');
+
+            let colorClass = "text-slate-300";
+            if (type === "success") colorClass = "text-emerald-400 font-semibold";
+            if (type === "error") colorClass = "text-rose-400 font-semibold";
+            if (type === "warn") colorClass = "text-amber-400 font-semibold";
+            if (type === "info") colorClass = "text-cyan-400";
+
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-3 ${colorClass} font-mono hover:bg-slate-900/50 px-1 py-0.5 rounded`;
+            div.innerHTML = `<span class="text-slate-600 select-none">${now}</span> <span class="flex-1">${msg}</span>`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+
+            if (ticker) {
+                ticker.innerText = msg;
+                ticker.className = `truncate flex-1 font-mono ${colorClass}`;
+            }
+        }
+
+        function renderProcesses(list) {
+            const tbody = document.getElementById('processTableBody');
+            tbody.innerHTML = "";
+            list.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-indigo-50/50 transition font-mono";
+                tr.innerHTML = `
+                    <td class="py-3 px-6 text-slate-500">${p.pid}</td>
+                    <td class="py-3 px-6 font-bold text-slate-800">${p.name}</td>
+                    <td class="py-3 px-6 text-center ${p.cpu > 50 ? 'text-rose-600 font-bold' : 'text-slate-600'}">${p.cpu}%</td>
+                    <td class="py-3 px-6 text-center text-slate-600">${p.ram}</td>
+                    <td class="py-3 px-6 text-center">
+                        <button onclick="killProcess(${p.pid}, '${p.name}')" class="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 px-3 py-1 rounded-lg text-xs font-bold transition shadow-sm font-mono">Tắt tiến trình</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            appendLog(`Đã làm mới danh sách: Quét thành công ${list.length} tiến trình`, "success");
+        }
+
+        function refreshProcesses() {
+            appendLog("Đang gửi lệnh yêu cầu quét tiến trình tới Agent...", "info");
+            sendCommand('GET_PROCESSES');
+        }
+
+        function killProcess(pid, name) {
+            if (confirm(`Xác nhận cưỡng chế dừng tiến trình ${name} (PID: ${pid})?`)) {
+                appendLog(`Đang gửi tập lệnh tắt tiến trình PID ${pid}...`, "warn");
+                sendCommand('KILL_PROCESS', { pid: pid });
+                setTimeout(refreshProcesses, 1000);
+            }
+        }
+
+        function startScreenStream() {
+            appendLog("Đang yêu cầu Agent phát luồng Giám sát Màn hình...", "info");
+            sendCommand('START_STREAM');
+        }
+        function stopScreenStream() {
+            appendLog("Đã gửi tập lệnh Dừng Giám sát Màn hình", "warn");
+            sendCommand('STOP_STREAM');
+        }
+        function startCamStream() {
+            appendLog("Đang yêu cầu bật Webcam (Sẽ hiển thị Popup xin quyền)...", "info");
+            sendCommand('START_CAM');
+        }
+        function stopCamStream() {
+            appendLog("Đã gửi tập lệnh Dừng Webcam tới Agent", "warn");
+            sendCommand('STOP_CAM');
+        }
+        function toggleFullscreenStream() {
+            const elem = document.getElementById("liveStream");
+            if (!elem || elem.classList.contains('hidden')) {
+                alert("Vui lòng kích hoạt luồng xem màn hình hoặc webcam trước!");
+                return;
+            }
+            if (elem.requestFullscreen) { elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+        }
+
+        function startKeylogger() {
+            appendLog("Đang kích hoạt Hook lắng nghe bàn phím...", "info");
+            sendCommand('START_KEYLOG');
+        }
+        function stopKeylogger() {
+            appendLog("Đã gửi tập lệnh Dừng Keylogger tới Agent", "warn");
+            sendCommand('STOP_KEYLOG');
+        }
+
+        function renderFiles(list) {
+            const tbody = document.getElementById('fileTableBody');
+            tbody.innerHTML = "";
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-slate-400 font-mono">Thư mục Sandbox hiện đang trống</td></tr>`;
+                return;
+            }
+            list.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-indigo-50/50 transition font-mono";
+                tr.innerHTML = `
+                    <td class="py-3 px-6 font-medium text-slate-800">${f.name}</td>
+                    <td class="py-3 px-6 text-center text-slate-500">${f.size} KB</td>
+                    <td class="py-3 px-6 text-center">
+                        <button onclick="downloadFile('${f.name}')" class="bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 px-3 py-1 rounded-lg text-xs font-bold transition shadow-sm font-mono">Tải xuống</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function refreshFileList() {
+            appendLog("Đang làm mới danh sách tệp trong Sandbox...", "info");
+            sendCommand('LIST_FILES');
+        }
+
+        function downloadFile(filename) {
+            appendLog(`Đang gửi yêu cầu tải xuống tệp tin: ${filename}...`, "info");
+            sendCommand('DOWNLOAD_FILE', { filename: filename });
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileUploader');
+            if (fileInput.files.length === 0) {
+                alert("Vui lòng chọn một tệp tài nguyên từ máy bạn trước!");
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            appendLog(`Đang mã hóa nhị phân Base64 và tải lên tệp: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`, "info");
+            reader.onload = function (e) {
+                const base64Data = e.target.result.split(',')[1];
+                sendCommand('UPLOAD_FILE', { filename: file.name, data: base64Data });
+                fileInput.value = "";
+                appendLog(`Đã truyền dữ liệu tệp ${file.name} tới Gateway. Đang chờ Agent lưu vào Sandbox...`, "info");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function sendPowerCommand(action) {
+            if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn thực thi lệnh ${action} trên máy trạm?`)) {
+                appendLog(`Đang gửi lệnh quản trị nguồn: ${action}...`, "warn");
+                sendCommand(action);
+            }
+        }
+
+        window.onload = initWebSocket;
+    </script>
+</body>
+
+</html>
