@@ -64,8 +64,15 @@ class AgentSecurityAlert:
                 label.configure(fg="black" if current_fg == "red" else "red")
                 window.after(500, flash)
             else:
-                window.destroy()
+                window.quit()  # BẢO MẬT: Dùng quit() thay vì destroy() để thoát vòng lặp an toàn
+                
         flash()
+        window.mainloop()
+        
+        try:
+            window.destroy() # Dọn dẹp cửa sổ ở bên ngoài vòng lặp
+        except:
+            pass
         window.mainloop()
 
     def start_visual_alert(self):
