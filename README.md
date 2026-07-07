@@ -12,12 +12,11 @@ LRC-SMS là hệ thống quản trị mạng cục bộ (LAN) dựa trên kiến
 - Python: Khuyến nghị cài đặt Python phiên bản 3.10 trở lên. (Lưu ý: Nhớ tích chọn "Add Python to PATH" trong quá trình cài đặt Python).
 
 ### 2. Cài đặt các gói thư viện (Dependencies)
-Mở cửa sổ Command Prompt (CMD) hoặc PowerShell tại thư mục gốc của dự án và chạy câu lệnh sau để cài đặt toàn bộ các thư viện cần thiết:
+Mở cửa sổ Command Prompt (CMD) hoặc PowerShell:
 
-pip install -r requirements.txt
-
-(Nếu không dùng file requirements.txt, có thể cài đặt thủ công bằng lệnh sau):
+```
 pip install fastapi uvicorn websockets psutil opencv-python pillow pynput pywin32
+```
 
 ---
 
