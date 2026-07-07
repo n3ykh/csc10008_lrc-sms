@@ -5,22 +5,6 @@ LRC-SMS là hệ thống quản trị mạng cục bộ (LAN) dựa trên kiến
 
 ---
 
-## Cấu trúc Thư mục Dự án
-
-Vui lòng đảm bảo mã nguồn được sắp xếp theo đúng cấu trúc sau trước khi khởi chạy:
-
-LRC-SMS-Project/
- |-- agent/                 # Chứa phân hệ Agent chạy ngầm trên máy trạm
- |   |-- agent.py
- |-- webapp/                # Chứa phân hệ Gateway Server và Giao diện Web
- |   |-- main.py
- |   |-- index.html
- |-- requirements.txt       # Danh sách các thư viện Python cần thiết
- |-- run.bat                # Script tự động hóa khởi chạy hệ thống (1-click)
- |-- README.md              # Tài liệu hướng dẫn sử dụng
-
----
-
 ## Yêu cầu Hệ thống & Cài đặt
 
 ### 1. Yêu cầu môi trường
