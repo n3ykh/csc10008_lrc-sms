@@ -88,6 +88,7 @@ if not os.path.exists(SANDBOX_DIR):
 # ==========================================================
 class ProcessManager:
     """Xử lý nghiệp vụ đọc dữ liệu hệ thống Windows và can thiệp Tiến trình"""
+    
     @staticmethod
     def get_all_processes():
         process_list = []
@@ -114,6 +115,14 @@ class ProcessManager:
             except Exception as e:
                 continue
         return process_list
+
+    @staticmethod
+    def kill_process(pid):
+        try:
+            psutil.Process(pid).kill()
+            return True
+        except:
+            return False
 
 # ==========================================================
 # 3. QUẢN LÝ TỆP TIN VÀ KHÓA ĐƯỜNG DẪN (FILE MANAGER)
